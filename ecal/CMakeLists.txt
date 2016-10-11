@@ -44,6 +44,7 @@ ecalDrawer.cxx
 ecalReconstructed.cxx
 ecalReco.cxx
 ecalMatch.cxx
+ecalClusterTuning.cxx
 )
 
 Set(LINKDEF ecalLinkDef.h)

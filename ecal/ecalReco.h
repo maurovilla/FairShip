@@ -12,6 +12,7 @@ class ecalStructure;
 class ecalClusterCalibration;
 class ecalCell;
 class ecalCluster;
+class ecalClusterTuning;
 
 class ecalReco : public FairTask
 {
@@ -29,7 +30,11 @@ public:
   virtual InitStatus Init();
   TClonesArray* InitPython(TClonesArray* clusters, ecalStructure* str, ecalClusterCalibration* calib);
   /** Destructor **/
-  ~ecalReco();
+  virtual ~ecalReco();
+
+  /** set cluster tuning (it will have the ownership of the pointer later **/
+  void SetEcalTune(ecalClusterTuning *tune);
+
 private:
   void ReconstructXY(ecalCell* max, Float_t& x, Float_t& y);
   void TryReconstruct(ecalCluster* cls, Int_t clsnum);
@@ -50,6 +55,8 @@ private:
   ecalStructure* fStr;			//!
   /** Cluster calibration object for photons **/
   ecalClusterCalibration* fCalib;	//!
+  /** Cluster shower maximum position: S-shape and E correction **/
+  ecalClusterTuning* fTune;
 
   ClassDef(ecalReco, 1)
 };

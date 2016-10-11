@@ -5,7 +5,8 @@
 #include "ecalStructure.h"
 #include "ecalClusterCalibration.h"
 #include "ecalReconstructed.h"
-
+#include "ecalClusterTuning.h"
+#include "ecalMaximum.h"
 #include "TClonesArray.h"
 
 #include <iostream>
@@ -40,6 +41,7 @@ void ecalReco::Exec(Option_t* option)
   Float_t ourE;
   Float_t allE;
   ecalCell* tcell;
+  Float_t Zcalo= fStr->GetEcalInf()->GetZPos();
 
   for(i=0;i<nc;i++)
   {
@@ -50,6 +52,12 @@ void ecalReco::Exec(Option_t* option)
       ReconstructXY(fStr->GetHitCell(cls->PeakNum(0)), x, y);
       reco=new ((*fReconstucted)[fN++]) ecalReconstructed(cls->Energy(), cls->PreCalibrated(), x, y, cls->PeakNum(0), i); 
       cls->SetStatus(1);
+      // evaluate best cluster position for EM showers
+      Double_t lnE=TMath::Log(cls->Energy());
+      reco->SetXbest(fTune->getBestCoord(cls->X(), cls->Maximum(0)->CX(), lnE) );
+      reco->SetYbest(fTune->getBestCoord(cls->Y(), cls->Maximum(0)->CY(), lnE) );
+      reco->SetZbest(fTune->getBestZ(Zcalo, lnE));
+      //      
       continue;
     }
     TryReconstruct(cls, i);
@@ -141,6 +149,7 @@ void ecalReco::TryReconstruct(ecalCluster* cls, Int_t clsnum)
   ecalCell* tcell;
   Float_t x;
   Float_t y;
+  Float_t Zcalo= fStr->GetEcalInf()->GetZPos();
 
   for(i=0;i<n;i++)
   {
@@ -196,6 +205,13 @@ void ecalReco::TryReconstruct(ecalCluster* cls, Int_t clsnum)
       rawE+=(*p)->GetEnergy()*ourE/allE;
     }
     reco=new ((*fReconstucted)[fN++]) ecalReconstructed(rawE, fCalib->Calibrate(maxs[i]->GetType(), rawE), x, y, cls->PeakNum(i), clsnum); 
+      // evaluate best cluster position for EM showers
+      Double_t lnE=TMath::Log(cls->Energy());
+      reco->SetXbest(fTune->getBestCoord(cls->X(), cls->Maximum(0)->CX(), lnE) );
+      reco->SetYbest(fTune->getBestCoord(cls->Y(), cls->Maximum(0)->CY(), lnE) );
+      reco->SetZbest(fTune->getBestZ(Zcalo, lnE));
+      //      
+
   }
   cls->SetStatus(1);
   if (rejected>0)
@@ -228,7 +244,7 @@ void ecalReco::ReconstructXY(ecalCell* max, Float_t& x, Float_t& y)
 /** Standard constructor **/
 ecalReco::ecalReco(const char* name, const Int_t verbose)
   : FairTask(name, verbose), fEv(0), fN(0), fRejected(0), fRejectedP(0),
-    fClusters(NULL), fReconstucted(NULL), fStr(NULL), fCalib(NULL)
+    fClusters(NULL), fReconstucted(NULL), fStr(NULL), fCalib(NULL), fTune(NULL)
 {
   ;
 }
@@ -236,7 +252,7 @@ ecalReco::ecalReco(const char* name, const Int_t verbose)
 /** Only to comply with frame work. **/
 ecalReco::ecalReco()
   : FairTask(), fEv(-1111), fN(0), fRejected(0), fRejectedP(0),
-    fClusters(NULL), fReconstucted(NULL), fStr(NULL), fCalib(NULL)
+    fClusters(NULL), fReconstucted(NULL), fStr(NULL), fCalib(NULL), fTune(NULL)
 {
   ;
 }
@@ -255,7 +271,22 @@ ecalReco::~ecalReco()
     fReconstucted->Delete();
     delete fReconstucted;
   }
+  if (fTune)
+  {  
+      delete fTune;
+      fTune=NULL;
+  }
 }
+
+
+
+/** set cluster tuning (it will have the ownership of the pointer later **/
+void ecalReco::SetEcalTune(ecalClusterTuning *tune)
+{
+  if(fTune) delete fTune;
+  fTune = tune; 
+}
+
 
 InitStatus ecalReco::Init()
 {
@@ -287,6 +318,8 @@ InitStatus ecalReco::Init()
   fReconstucted=new TClonesArray("ecalReconstructed", 2000);
   io->Register("EcalReco", "ECAL", fReconstucted, kTRUE);
 
+  fTune = new ecalClusterTuning();
+
   fEv=0;
   return kSUCCESS;
 }
@@ -298,6 +331,8 @@ TClonesArray* ecalReco::InitPython(TClonesArray* clusters, ecalStructure* str, e
   fClusters=clusters;
   fReconstucted=new TClonesArray("ecalReconstructed", 2000);
   
+  fTune = new ecalClusterTuning();
+
   fEv=0;
   return fReconstucted;
 }

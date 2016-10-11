@@ -27,5 +27,6 @@
 #pragma link C++ class ecalReconstructed+;
 #pragma link C++ class ecalReco;
 #pragma link C++ class ecalMatch;
+#pragma link C++ class ecalClusterTuning;
 
 #endif
