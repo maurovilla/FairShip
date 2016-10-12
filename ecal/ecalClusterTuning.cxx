@@ -24,16 +24,16 @@ ecalClusterTuning::ecalClusterTuning() {
 // Tested on FairShip as of 10 Oct 2016
 void ecalClusterTuning::setDefaultTuning(){
 
-  energyCorrection[0] = 0.0744; // GeV  -- unchanged!
+  energyCorrection[0] = 0.0; // GeV  -- unchanged!
   energyCorrection[1] = 1.;
 
-  zCorrection[0] = 12.22; // cm         -- uncert: +-0.63
-  zCorrection[1] = 1.789; // cm/lnGeV   -- uncert: +-0.316
+  zCorrection[0] = 11.89; // cm         -- uncert: +-0.42
+  zCorrection[1] = 1.98; // cm/lnGeV    -- uncert: +-0.16
 
-  sShapeParameter[0]= 1.164;   // cm        -- uncert: 0.011
-  sShapeParameter[1]= -0.0774; //cm/ln(GeV) -- uncert: 0.0061
-  sShapeParameter[2]= 2.069;  // 1/cm       -- uncert: 0.051
-  sShapeParameter[3]=0.968;   //1/(cm*ln(GeV);      -- uncert: 0.036
+  sShapeParameter[0]= 1.166;   // cm        -- uncert: 0.0096
+  sShapeParameter[1]= -0.0737; //cm/ln(GeV) -- uncert: 0.0047
+  sShapeParameter[2]= 1.721;  // 1/cm       -- uncert: 0.025
+  sShapeParameter[3]=1.091;   //1/(cm*ln(GeV);      -- uncert: 0.018
 
 }
 
